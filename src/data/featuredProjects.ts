@@ -3,6 +3,17 @@ import { assetBase } from './base'
 
 export const featuredProjects: FeaturedProject[] = [
   {
+    name: 'LuaRover',
+    description: `
+My Master's dissertation project, an educational app that teaches real Lua syntax to 10 to 14 year olds by having every instruction move a rover on a grid instead of printing to a console.
+
+The interesting part is lua_native, a package I built to bind the official Lua 5.5 C engine into Dart through FFI on native platforms and WebAssembly in the browser, including a setjmp/longjmp based guard so a Lua panic can't crash the host app. The Flutter client records every step as a frame so a run can be replayed and scrubbed without re-executing the script, and an ASP.NET Core backend handles accounts and multilingual lesson content.
+            `,
+    tags: ['Flutter', 'Dart', 'FFI & WebAssembly'],
+    image: `${assetBase}images/showcase/lua-rover.jpg`,
+    links: [{ label: 'See Case Study', href: '#/lua-rover' }],
+  },
+  {
     name: 'Plugin Restaurant Ordering System',
     description: `
 My CS Bachelor's thesis project, built with ASP.NET Core and Flutter. The backend uses Clean Architecture with a runtime plugin system: new business logic ships as a DLL loaded at startup, so the core server never needs to change.
