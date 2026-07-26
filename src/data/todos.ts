@@ -7,16 +7,10 @@ export type Todo = {
 
 export const todos: Todo[] = [
     {
-        title: 'Build and Finish the Lua Rover Platform',
-        description: 'Finishing an educational platform that extends a Flutter app with a native Lua execution engine. The engine is based on an existing C++ implementation, connected to Dart through FFI.',
-        status: 'in-progress',
-        eta: 'Jun 2026',
-    },
-    {
         title: 'Deploy Interactive Educational Tool',
         description: 'Wrapping up and releasing the Step-by-step Kangaroo game. It teaches children how programs execute step by step through a simple animated character.',
         status: 'todo',
-        eta: 'Aug 2026',
+        eta: 'Sep 2026',
     },
     {
         title: 'Research and Ship a New Mobile App',

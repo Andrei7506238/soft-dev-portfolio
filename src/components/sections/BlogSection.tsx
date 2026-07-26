@@ -11,9 +11,9 @@ type BlogPost = {
   image?: string
 }
 
-const FEED_URL = 'https://andrei7506238.github.io/blog/feed.xml'
+const FEED_URL = 'https://andrei7506238.github.io/blog/rss.xml'
 const MAX_VISIBLE_COMPACT_POSTS = 2
-const CACHE_KEY = 'blog-feed-cache-v1'
+const CACHE_KEY = 'blog-feed-cache-v2'
 const ALL_POSTS = 'all'
 
 function stripHtml(htmlText: string): string {
@@ -22,10 +22,8 @@ function stripHtml(htmlText: string): string {
   return plainText.replace(/\s+/g, ' ').trim()
 }
 
-function pickSummary(entry: Element): string {
-  const summary = entry.getElementsByTagName('summary')[0]?.textContent?.trim() ?? ''
-  const content = entry.getElementsByTagName('content')[0]?.textContent?.trim() ?? ''
-  const source = summary || content
+function pickSummary(item: Element): string {
+  const source = item.getElementsByTagName('description')[0]?.textContent?.trim() ?? ''
 
   if (!source) {
     return 'Open the full article for the complete write-up.'
@@ -36,16 +34,12 @@ function pickSummary(entry: Element): string {
   return cleaned.length > 190 ? `${cleaned.slice(0, 187).trimEnd()}...` : cleaned
 }
 
-function pickPublishedDate(entry: Element): string {
-  return (
-    entry.getElementsByTagName('published')[0]?.textContent?.trim() ??
-    entry.getElementsByTagName('updated')[0]?.textContent?.trim() ??
-    ''
-  )
+function pickPublishedDate(item: Element): string {
+  return item.getElementsByTagName('pubDate')[0]?.textContent?.trim() ?? ''
 }
 
-function pickImage(entry: Element): string | undefined {
-  const mediaNode = Array.from(entry.children).find(
+function pickImage(item: Element): string | undefined {
+  const mediaNode = Array.from(item.children).find(
     (child) =>
       child.namespaceURI === 'http://search.yahoo.com/mrss/' &&
       (child.localName === 'thumbnail' || child.localName === 'content'),
@@ -56,10 +50,12 @@ function pickImage(entry: Element): string | undefined {
     return mediaUrl
   }
 
-  const htmlSource =
-    entry.getElementsByTagName('summary')[0]?.textContent?.trim() ??
-    entry.getElementsByTagName('content')[0]?.textContent?.trim() ??
-    ''
+  const enclosureUrl = item.getElementsByTagName('enclosure')[0]?.getAttribute('url')?.trim()
+  if (enclosureUrl) {
+    return enclosureUrl
+  }
+
+  const htmlSource = item.getElementsByTagName('description')[0]?.textContent?.trim() ?? ''
 
   if (!htmlSource) {
     return undefined
@@ -103,40 +99,28 @@ function buildMediaStyle(post: BlogPost): React.CSSProperties | undefined {
   }
 }
 
-function pickAtomLink(entry: Element): string {
-  const linkNodes = Array.from(entry.getElementsByTagName('link'))
-  const alternate =
-    linkNodes.find((node) => (node.getAttribute('rel') ?? 'alternate') === 'alternate') ??
-    linkNodes[0]
-
+function pickLink(item: Element): string {
   return (
-    alternate?.getAttribute('href')?.trim() ??
-    entry.getElementsByTagName('id')[0]?.textContent?.trim() ??
+    item.getElementsByTagName('link')[0]?.textContent?.trim() ??
+    item.getElementsByTagName('guid')[0]?.textContent?.trim() ??
     ''
   )
 }
 
-function pickCategory(entry: Element): string {
-  const firstCategory = entry.getElementsByTagName('category')[0]
-  if (!firstCategory) {
-    return 'Uncategorized'
-  }
+function pickCategory(item: Element): string {
+  const firstCategory = item.getElementsByTagName('category')[0]
 
-  return (
-    firstCategory.getAttribute('term')?.trim() ??
-    firstCategory.textContent?.trim() ??
-    'Uncategorized'
-  )
+  return firstCategory?.textContent?.trim() || 'Uncategorized'
 }
 
 function parseFeed(xmlText: string): BlogPost[] {
   const xml = new DOMParser().parseFromString(xmlText, 'application/xml')
-  const entries = Array.from(xml.querySelectorAll('entry'))
+  const entries = Array.from(xml.querySelectorAll('item'))
 
   return entries
     .map((node, index) => {
       const title = node.getElementsByTagName('title')[0]?.textContent?.trim() ?? ''
-      const link = pickAtomLink(node)
+      const link = pickLink(node)
       const category = pickCategory(node)
       const image = pickImage(node)
 
